@@ -29,9 +29,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
 type threadUnsafeSet[T comparable] map[T]struct{}
@@ -74,13 +71,7 @@ func (s *threadUnsafeSet[T]) append(vs ...T) {
 }
 
 func (s *threadUnsafeSet[T]) AppendFrom(other Set[T]) int {
-	o := other.(*threadUnsafeSet[T])
-
-	prevLen := s.Cardinality()
-	for elem := range *o {
-		s.add(elem)
-	}
-	return s.Cardinality() - prevLen
+	return s.Append(other.ToSlice()...)
 }
 
 func (s *threadUnsafeSet[T]) Cardinality() int {
@@ -88,8 +79,7 @@ func (s *threadUnsafeSet[T]) Cardinality() int {
 }
 
 func (s *threadUnsafeSet[T]) Clear() {
-	// Constructions like this are optimised by compiler, and replaced by
-	// mapclear() function, defined in
+	// Constructions like this are optimised by compiler, and replaced by clear() function, defined in
 	// https://github.com/golang/go/blob/29bbca5c2c1ad41b2a9747890d183b6dd3a4ace4/src/runtime/map.go#L993)
 	for key := range *s {
 		delete(*s, key)
@@ -101,52 +91,47 @@ func (s *threadUnsafeSet[T]) Clone() Set[T] {
 	return &t
 }
 
-func (s *threadUnsafeSet[T]) Contains(v ...T) bool {
+func (s *threadUnsafeSet[T]) Contains(v T) bool {
+	_, found := (*s)[v]
+	return found
+}
+
+func (s *threadUnsafeSet[T]) ContainsAll(v ...T) bool {
 	for _, val := range v {
-		if !s.contains(val) {
+		if !s.Contains(val) {
 			return false
 		}
 	}
 	return true
 }
 
-func (s *threadUnsafeSet[T]) ContainsOne(v T) bool {
-	return s.contains(v)
-}
-
 func (s *threadUnsafeSet[T]) ContainsAny(v ...T) bool {
 	for _, val := range v {
-		if s.contains(val) {
+		if s.Contains(val) {
 			return true
 		}
 	}
 	return false
 }
 
-func (s *threadUnsafeSet[T]) ContainsAnyElement(other Set[T]) bool {
+func (s *threadUnsafeSet[T]) Intersects(other Set[T]) bool {
 	o := other.(*threadUnsafeSet[T])
 
 	// loop over smaller set
 	if s.Cardinality() < other.Cardinality() {
 		for elem := range *s {
-			if o.contains(elem) {
+			if o.Contains(elem) {
 				return true
 			}
 		}
 	} else {
 		for elem := range *o {
-			if s.contains(elem) {
+			if s.Contains(elem) {
 				return true
 			}
 		}
 	}
 	return false
-}
-
-// private version of Contains for a single element v
-func (s *threadUnsafeSet[T]) contains(v T) (ok bool) {
-	_, found := (*s)[v]
-	return found
 }
 
 func (s *threadUnsafeSet[T]) Difference(other Set[T]) Set[T] {
@@ -154,7 +139,7 @@ func (s *threadUnsafeSet[T]) Difference(other Set[T]) Set[T] {
 
 	diff := make(threadUnsafeSet[T], s.Cardinality())
 	for elem := range *s {
-		if !o.contains(elem) {
+		if !o.Contains(elem) {
 			diff.add(elem)
 		}
 	}
@@ -186,7 +171,7 @@ func (s *threadUnsafeSet[T]) Equal(other Set[T]) bool {
 		return false
 	}
 	for elem := range *s {
-		if !o.contains(elem) {
+		if !o.Contains(elem) {
 			return false
 		}
 	}
@@ -201,14 +186,14 @@ func (s *threadUnsafeSet[T]) Intersect(other Set[T]) Set[T] {
 	if s.Cardinality() < other.Cardinality() {
 		intersection = make(threadUnsafeSet[T], s.Cardinality())
 		for elem := range *s {
-			if o.contains(elem) {
+			if o.Contains(elem) {
 				intersection.add(elem)
 			}
 		}
 	} else {
 		intersection = make(threadUnsafeSet[T], o.Cardinality())
 		for elem := range *o {
-			if s.contains(elem) {
+			if s.Contains(elem) {
 				intersection.add(elem)
 			}
 		}
@@ -234,7 +219,7 @@ func (s *threadUnsafeSet[T]) IsSubset(other Set[T]) bool {
 		return false
 	}
 	for elem := range *s {
-		if !o.contains(elem) {
+		if !o.Contains(elem) {
 			return false
 		}
 	}
@@ -316,6 +301,10 @@ func (s threadUnsafeSet[T]) RemoveAll(i ...T) {
 	}
 }
 
+func (s *threadUnsafeSet[T]) RemoveFrom(other Set[T]) {
+	s.RemoveAll(other.ToSlice()...)
+}
+
 func (s threadUnsafeSet[T]) String() string {
 	items := make([]string, 0, len(s))
 
@@ -331,16 +320,15 @@ func (s *threadUnsafeSet[T]) SymmetricDifference(other Set[T]) Set[T] {
 	// maximum number of elements is the sum of s and o cardinalities (when s and o are disjoint)
 	n := s.Cardinality() + o.Cardinality()
 	sd := make(threadUnsafeSet[T], n)
-	for elem := range *s {
-		if !o.contains(elem) {
-			sd.add(elem)
-		}
-	}
-	for elem := range *o {
-		if !s.contains(elem) {
-			sd.add(elem)
-		}
-	}
+
+	_ = sd.AppendFrom(s.Filter(func(elem T) bool {
+		return !o.Contains(elem)
+	}))
+
+	_ = sd.AppendFrom(o.Filter(func(elem T) bool {
+		return !s.Contains(elem)
+	}))
+
 	return &sd
 }
 
@@ -360,49 +348,23 @@ func (s threadUnsafeSet[T]) Union(other Set[T]) Set[T] {
 	n := s.Cardinality() + o.Cardinality()
 	unionedSet := make(threadUnsafeSet[T], n)
 
-	for elem := range s {
-		unionedSet.add(elem)
-	}
-	for elem := range *o {
-		unionedSet.add(elem)
-	}
+	_ = unionedSet.AppendFrom(&s)
+	_ = unionedSet.AppendFrom(o)
+
 	return &unionedSet
 }
 
-// MarshalJSON creates a JSON array from the set, it marshals all elements
 func (s threadUnsafeSet[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.ToSlice())
 }
 
-// UnmarshalJSON recreates a set from a JSON array, it only decodes
-// primitive types. Numbers are decoded as json.Number.
 func (s *threadUnsafeSet[T]) UnmarshalJSON(b []byte) error {
 	var i []T
 	err := json.Unmarshal(b, &i)
 	if err != nil {
 		return err
 	}
-	s.append(i...)
-
-	return nil
-}
-
-// MarshalBSON creates a BSON array from the set.
-func (s threadUnsafeSet[T]) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(s.ToSlice())
-}
-
-// UnmarshalBSON recreates a set from a BSON array.
-func (s threadUnsafeSet[T]) UnmarshalBSONValue(bt bsontype.Type, b []byte) error {
-	if bt != bson.TypeArray {
-		return fmt.Errorf("must use BSON Array to unmarshal Set")
-	}
-
-	var i []T
-	err := bson.UnmarshalValue(bt, b, &i)
-	if err != nil {
-		return err
-	}
+	s.Clear()
 	s.append(i...)
 
 	return nil

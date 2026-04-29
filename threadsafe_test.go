@@ -33,8 +33,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 const N = 1000
@@ -56,7 +54,7 @@ func Test_AddConcurrent(t *testing.T) {
 
 	wg.Wait()
 	for _, i := range ints {
-		if !s.Contains(i) {
+		if !s.ContainsAll(i) {
 			t.Errorf("Set is missing element: %v", i)
 		}
 	}
@@ -80,7 +78,7 @@ func Test_AppendConcurrent(t *testing.T) {
 
 	wg.Wait()
 	for _, i := range ints {
-		if !s.Contains(i) {
+		if !s.ContainsAll(i) {
 			t.Errorf("Set is missing element: %v", i)
 		}
 	}
@@ -168,7 +166,7 @@ func Test_ContainsConcurrent(t *testing.T) {
 	for range ints {
 		wg.Add(1)
 		go func() {
-			s.Contains(integers...)
+			s.ContainsAll(integers...)
 			wg.Done()
 		}()
 	}
@@ -189,7 +187,7 @@ func Test_ContainsOneConcurrent(t *testing.T) {
 		number := v
 		wg.Add(1)
 		go func() {
-			s.ContainsOne(number)
+			s.Contains(number)
 			wg.Done()
 		}()
 	}
@@ -220,7 +218,7 @@ func Test_ContainsAnyConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
-func Test_ContainsAnyElementConcurrent(t *testing.T) {
+func Test_IntersectsConcurrent(t *testing.T) {
 	runtime.GOMAXPROCS(2)
 
 	s, ss := NewSet[int](), NewSet[int]()
@@ -234,7 +232,7 @@ func Test_ContainsAnyElementConcurrent(t *testing.T) {
 	for range ints {
 		wg.Add(1)
 		go func() {
-			s.ContainsAnyElement(ss)
+			s.Intersects(ss)
 			wg.Done()
 		}()
 	}
@@ -465,7 +463,7 @@ func Test_FilterConcurrent(t *testing.T) {
 				if elem%2 != 0 {
 					t.Errorf("Filter produced odd element %d", elem)
 				}
-				if !s.Contains(elem) {
+				if !s.ContainsAll(elem) {
 					t.Errorf("Filter produced element %d not in source", elem)
 				}
 				return false
@@ -599,7 +597,7 @@ func Test_ToSlice(t *testing.T) {
 	}
 
 	for _, i := range setAsSlice {
-		if !s.Contains(i) {
+		if !s.ContainsAll(i) {
 			t.Errorf("Set is missing element: %v", i)
 		}
 	}
@@ -722,83 +720,5 @@ func Test_DeadlockOnEachCallbackWhenPanic(t *testing.T) {
 	card = widgets.Cardinality()
 	if widgets.Cardinality() != 5 {
 		t.Errorf("Expected widgets to have 5 elements, but has %d", card)
-	}
-}
-
-func Test_UnmarshalBSONValue(t *testing.T) {
-	tp, s, initErr := bson.MarshalValue(
-		bson.A{"1", "2", "3", "test"},
-	)
-
-	if initErr != nil {
-		t.Errorf("Init Error should be nil: %v", initErr)
-
-		return
-	}
-
-	if tp != bson.TypeArray {
-		t.Errorf("Encoded Type should be bson.Array, got: %v", tp)
-
-		return
-	}
-
-	expected := NewSet("1", "2", "3", "test")
-	actual := NewSet[string]()
-	err := bson.UnmarshalValue(bson.TypeArray, s, actual)
-	if err != nil {
-		t.Errorf("Error should be nil: %v", err)
-	}
-
-	if !expected.Equal(actual) {
-		t.Errorf("Expected no difference, got: %v", expected.Difference(actual))
-	}
-}
-
-func TestThreadUnsafeSet_UnmarshalBSONValue(t *testing.T) {
-	tp, s, initErr := bson.MarshalValue(
-		bson.A{int64(1), int64(2), int64(3)},
-	)
-
-	if initErr != nil {
-		t.Errorf("Init Error should be nil: %v", initErr)
-
-		return
-	}
-
-	if tp != bson.TypeArray {
-		t.Errorf("Encoded Type should be bson.Array, got: %v", tp)
-
-		return
-	}
-
-	expected := NewThreadUnsafeSet[int64](1, 2, 3)
-	actual := NewThreadUnsafeSet[int64]()
-	err := actual.UnmarshalBSONValue(bson.TypeArray, []byte(s))
-	if err != nil {
-		t.Errorf("Error should be nil: %v", err)
-	}
-	if !expected.Equal(actual) {
-		t.Errorf("Expected no difference, got: %v", expected.Difference(actual))
-	}
-}
-
-func Test_MarshalBSONValue(t *testing.T) {
-	expected := NewSet("1", "test")
-
-	_, b, err := bson.MarshalValue(
-		NewSet("1", "test"),
-	)
-	if err != nil {
-		t.Errorf("Error should be nil: %v", err)
-	}
-
-	actual := NewSet[string]()
-	err = bson.UnmarshalValue(bson.TypeArray, b, actual)
-	if err != nil {
-		t.Errorf("Error should be nil: %v", err)
-	}
-
-	if !expected.Equal(actual) {
-		t.Errorf("Expected no difference, got: %v", expected.Difference(actual))
 	}
 }

@@ -194,7 +194,7 @@ func benchContains(b *testing.B, n int, s Set[int]) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.Contains(nums...)
+		s.ContainsAll(nums...)
 	}
 }
 
@@ -230,7 +230,7 @@ func benchContainsOne(b *testing.B, n int, s Set[int]) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		s.ContainsOne(-1)
+		s.Contains(-1)
 	}
 }
 
@@ -277,7 +277,7 @@ func benchContainsComparison(b *testing.B, n int, s Set[int]) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			for i := range nums {
-				s.Contains(nums[i : i+1]...) // no allocations, using heap-allocated slice
+				s.ContainsAll(nums[i : i+1]...) // no allocations, using heap-allocated slice
 			}
 		}
 	})
@@ -285,7 +285,7 @@ func benchContainsComparison(b *testing.B, n int, s Set[int]) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			for _, v := range nums {
-				s.ContainsOne(v) // no allocations, using stack-allocated v
+				s.Contains(v) // no allocations, using stack-allocated v
 			}
 		}
 	})

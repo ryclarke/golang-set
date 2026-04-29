@@ -21,3 +21,9 @@ _testmain.go
 
 *.exe
 .idea
+
+# Go workspace files are local-only dev aids and must not be committed.
+# Note: they are NOT required here — each submodule's go.mod carries a local
+# `replace` for its in-repo core dependency, which is what `go mod tidy` honors.
+go.work
+go.work.sum

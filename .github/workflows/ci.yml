@@ -6,6 +6,7 @@ jobs:
       matrix:
         go-version: [1.24.x, 1.25.x, 1.26.x]
         os: [ubuntu-latest, macos-latest, windows-latest]
+        dir: ['', x/marshal]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
@@ -15,6 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Test
+        working-directory: ${{ matrix.dir }}
         run: |
           go test -v -race ./...
           # go vet ./...

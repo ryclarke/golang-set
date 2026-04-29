@@ -123,7 +123,7 @@ func Test_AddSetNoDuplicate(t *testing.T) {
 		t.Error("AddSetNoDuplicate set should have 3 elements since 7 is a duplicate")
 	}
 
-	if !(a.Contains(7) && a.Contains(5) && a.Contains(3)) {
+	if !(a.ContainsAll(7) && a.ContainsAll(5) && a.ContainsAll(3)) {
 		t.Error("AddSetNoDuplicate set should have a 7, 5, and 3 in it.")
 	}
 }
@@ -135,7 +135,7 @@ func Test_AddUnsafeSetNoDuplicate(t *testing.T) {
 		t.Error("AddSetNoDuplicate set should have 3 elements since 7 is a duplicate")
 	}
 
-	if !(a.Contains(7) && a.Contains(5) && a.Contains(3)) {
+	if !(a.ContainsAll(7) && a.ContainsAll(5) && a.ContainsAll(3)) {
 		t.Error("AddSetNoDuplicate set should have a 7, 5, and 3 in it.")
 	}
 }
@@ -147,7 +147,7 @@ func Test_AppendSetNoDuplicate(t *testing.T) {
 		t.Error("AppendSetNoDuplicate set should have 3 elements since 7 is a duplicate")
 	}
 
-	if !(a.Contains(7) && a.Contains(5) && a.Contains(3)) {
+	if !(a.ContainsAll(7) && a.ContainsAll(5) && a.ContainsAll(3)) {
 		t.Error("AppendSetNoDuplicate set should have a 7, 5, and 3 in it.")
 	}
 }
@@ -159,7 +159,7 @@ func Test_AppendUnsafeSetNoDuplicate(t *testing.T) {
 		t.Error("AppendSetNoDuplicate set should have 3 elements since 7 is a duplicate")
 	}
 
-	if !(a.Contains(7) && a.Contains(5) && a.Contains(3)) {
+	if !(a.ContainsAll(7) && a.ContainsAll(5) && a.ContainsAll(3)) {
 		t.Error("AppendSetNoDuplicate set should have a 7, 5, and 3 in it.")
 	}
 }
@@ -197,7 +197,7 @@ func Test_RemoveSet(t *testing.T) {
 		t.Error("RemoveSet should only have 2 items in the set")
 	}
 
-	if !(a.Contains(6) && a.Contains(1)) {
+	if !(a.ContainsAll(6) && a.ContainsAll(1)) {
 		t.Error("RemoveSet should have only items 6 and 1 in the set")
 	}
 
@@ -218,7 +218,7 @@ func Test_RemoveAllSet(t *testing.T) {
 		t.Error("RemoveAll should only have 2 items in the set")
 	}
 
-	if !a.Contains(6, 8, 9) {
+	if !a.ContainsAll(6, 8, 9) {
 		t.Error("RemoveAll should have only items (6,8,9) in the set")
 	}
 
@@ -238,7 +238,7 @@ func Test_RemoveUnsafeSet(t *testing.T) {
 		t.Error("RemoveSet should only have 2 items in the set")
 	}
 
-	if !(a.Contains(6) && a.Contains(1)) {
+	if !(a.ContainsAll(6) && a.ContainsAll(1)) {
 		t.Error("RemoveSet should have only items 6 and 1 in the set")
 	}
 
@@ -259,7 +259,7 @@ func Test_RemoveAllUnsafeSet(t *testing.T) {
 		t.Error("RemoveAll should only have 2 items in the set")
 	}
 
-	if !a.Contains(6, 8, 9) {
+	if !a.ContainsAll(6, 8, 9) {
 		t.Error("RemoveAll should have only items (6,8,9) in the set")
 	}
 
@@ -275,13 +275,13 @@ func Test_ContainsSet(t *testing.T) {
 
 	a.Add(71)
 
-	if !a.Contains(71) {
+	if !a.ContainsAll(71) {
 		t.Error("ContainsSet should contain 71")
 	}
 
 	a.Remove(71)
 
-	if a.Contains(71) {
+	if a.ContainsAll(71) {
 		t.Error("ContainsSet should not contain 71")
 	}
 
@@ -289,7 +289,7 @@ func Test_ContainsSet(t *testing.T) {
 	a.Add(7)
 	a.Add(1)
 
-	if !(a.Contains(13) && a.Contains(7) && a.Contains(1)) {
+	if !(a.ContainsAll(13) && a.ContainsAll(7) && a.ContainsAll(1)) {
 		t.Error("ContainsSet should contain 13, 7, 1")
 	}
 }
@@ -299,6 +299,54 @@ func Test_ContainsUnsafeSet(t *testing.T) {
 
 	a.Add(71)
 
+	if !a.ContainsAll(71) {
+		t.Error("ContainsSet should contain 71")
+	}
+
+	a.Remove(71)
+
+	if a.ContainsAll(71) {
+		t.Error("ContainsSet should not contain 71")
+	}
+
+	a.Add(13)
+	a.Add(7)
+	a.Add(1)
+
+	if !(a.ContainsAll(13) && a.ContainsAll(7) && a.ContainsAll(1)) {
+		t.Error("ContainsSet should contain 13, 7, 1")
+	}
+}
+
+func Test_ContainsMultipleSet(t *testing.T) {
+	a := makeSetInt([]int{8, 6, 7, 5, 3, 0, 9})
+
+	if !a.ContainsAll(8, 6, 7, 5, 3, 0, 9) {
+		t.Error("ContainsAll should contain Jenny's phone number")
+	}
+
+	if a.ContainsAll(8, 6, 11, 5, 3, 0, 9) {
+		t.Error("ContainsAll should not have all of these numbers")
+	}
+}
+
+func Test_ContainsMultipleUnsafeSet(t *testing.T) {
+	a := makeUnsafeSetInt([]int{8, 6, 7, 5, 3, 0, 9})
+
+	if !a.ContainsAll(8, 6, 7, 5, 3, 0, 9) {
+		t.Error("ContainsAll should contain Jenny's phone number")
+	}
+
+	if a.ContainsAll(8, 6, 11, 5, 3, 0, 9) {
+		t.Error("ContainsAll should not have all of these numbers")
+	}
+}
+
+func Test_ContainsOneSet(t *testing.T) {
+	a := NewSet[int]()
+
+	a.Add(71)
+
 	if !a.Contains(71) {
 		t.Error("ContainsSet should contain 71")
 	}
@@ -318,66 +366,18 @@ func Test_ContainsUnsafeSet(t *testing.T) {
 	}
 }
 
-func Test_ContainsMultipleSet(t *testing.T) {
-	a := makeSetInt([]int{8, 6, 7, 5, 3, 0, 9})
-
-	if !a.Contains(8, 6, 7, 5, 3, 0, 9) {
-		t.Error("ContainsAll should contain Jenny's phone number")
-	}
-
-	if a.Contains(8, 6, 11, 5, 3, 0, 9) {
-		t.Error("ContainsAll should not have all of these numbers")
-	}
-}
-
-func Test_ContainsMultipleUnsafeSet(t *testing.T) {
-	a := makeUnsafeSetInt([]int{8, 6, 7, 5, 3, 0, 9})
-
-	if !a.Contains(8, 6, 7, 5, 3, 0, 9) {
-		t.Error("ContainsAll should contain Jenny's phone number")
-	}
-
-	if a.Contains(8, 6, 11, 5, 3, 0, 9) {
-		t.Error("ContainsAll should not have all of these numbers")
-	}
-}
-
-func Test_ContainsOneSet(t *testing.T) {
-	a := NewSet[int]()
-
-	a.Add(71)
-
-	if !a.ContainsOne(71) {
-		t.Error("ContainsSet should contain 71")
-	}
-
-	a.Remove(71)
-
-	if a.ContainsOne(71) {
-		t.Error("ContainsSet should not contain 71")
-	}
-
-	a.Add(13)
-	a.Add(7)
-	a.Add(1)
-
-	if !(a.ContainsOne(13) && a.ContainsOne(7) && a.ContainsOne(1)) {
-		t.Error("ContainsSet should contain 13, 7, 1")
-	}
-}
-
 func Test_ContainsOneUnsafeSet(t *testing.T) {
 	a := NewThreadUnsafeSet[int]()
 
 	a.Add(71)
 
-	if !a.ContainsOne(71) {
+	if !a.Contains(71) {
 		t.Error("ContainsSet should contain 71")
 	}
 
 	a.Remove(71)
 
-	if a.ContainsOne(71) {
+	if a.Contains(71) {
 		t.Error("ContainsSet should not contain 71")
 	}
 
@@ -385,7 +385,7 @@ func Test_ContainsOneUnsafeSet(t *testing.T) {
 	a.Add(7)
 	a.Add(1)
 
-	if !(a.ContainsOne(13) && a.ContainsOne(7) && a.ContainsOne(1)) {
+	if !(a.Contains(13) && a.Contains(7) && a.Contains(1)) {
 		t.Error("ContainsSet should contain 13, 7, 1")
 	}
 }
@@ -422,7 +422,7 @@ func Test_ContainsAnySet(t *testing.T) {
 	}
 }
 
-func Test_ContainsAnyElement(t *testing.T) {
+func Test_Intersects(t *testing.T) {
 	a := NewSet[int]()
 	a.Add(1)
 	a.Add(3)
@@ -433,19 +433,19 @@ func Test_ContainsAnyElement(t *testing.T) {
 	a.Add(4)
 	a.Add(6)
 
-	if ret := a.ContainsAnyElement(b); ret {
+	if ret := a.Intersects(b); ret {
 		t.Errorf("set a not contain any element in set b")
 	}
 
 	a.Add(10)
 
-	if ret := a.ContainsAnyElement(b); ret {
+	if ret := a.Intersects(b); ret {
 		t.Errorf("set a not contain any element in set b")
 	}
 
 	b.Add(10)
 
-	if ret := a.ContainsAnyElement(b); !ret {
+	if ret := a.Intersects(b); !ret {
 		t.Errorf("set a contain 10")
 	}
 }
@@ -834,7 +834,7 @@ func Test_SetIntersect(t *testing.T) {
 
 	d := a.Intersect(b)
 
-	if !(d.Cardinality() == 1 && d.Contains(10)) {
+	if !(d.Cardinality() == 1 && d.ContainsAll(10)) {
 		t.Error("set d should have a size of 1 and contain the item 10")
 	}
 }
@@ -861,7 +861,7 @@ func Test_UnsafeSetIntersect(t *testing.T) {
 
 	d := a.Intersect(b)
 
-	if !(d.Cardinality() == 1 && d.Contains(10)) {
+	if !(d.Cardinality() == 1 && d.ContainsAll(10)) {
 		t.Error("set d should have a size of 1 and contain the item 10")
 	}
 }
@@ -882,7 +882,7 @@ func Test_SetDifference(t *testing.T) {
 
 	c := a.Difference(b)
 
-	if !(c.Cardinality() == 1 && c.Contains(2)) {
+	if !(c.Cardinality() == 1 && c.ContainsAll(2)) {
 		t.Error("the difference of set a to b is the set of 1 item: 2")
 	}
 }
@@ -903,7 +903,7 @@ func Test_UnsafeSetDifference(t *testing.T) {
 
 	c := a.Difference(b)
 
-	if !(c.Cardinality() == 1 && c.Contains(2)) {
+	if !(c.Cardinality() == 1 && c.ContainsAll(2)) {
 		t.Error("the difference of set a to b is the set of 1 item: 2")
 	}
 }
@@ -925,7 +925,7 @@ func Test_SetSymmetricDifference(t *testing.T) {
 
 	c := a.SymmetricDifference(b)
 
-	if !(c.Cardinality() == 6 && c.Contains(2) && c.Contains(45) && c.Contains(4) && c.Contains(5) && c.Contains(6) && c.Contains(99)) {
+	if !(c.Cardinality() == 6 && c.ContainsAll(2) && c.ContainsAll(45) && c.ContainsAll(4) && c.ContainsAll(5) && c.ContainsAll(6) && c.ContainsAll(99)) {
 		t.Error("the symmetric difference of set a to b is the set of 6 items: 2, 45, 4, 5, 6, 99")
 	}
 }
@@ -947,7 +947,7 @@ func Test_UnsafeSetSymmetricDifference(t *testing.T) {
 
 	c := a.SymmetricDifference(b)
 
-	if !(c.Cardinality() == 6 && c.Contains(2) && c.Contains(45) && c.Contains(4) && c.Contains(5) && c.Contains(6) && c.Contains(99)) {
+	if !(c.Cardinality() == 6 && c.ContainsAll(2) && c.ContainsAll(45) && c.ContainsAll(4) && c.ContainsAll(5) && c.ContainsAll(6) && c.ContainsAll(99)) {
 		t.Error("the symmetric difference of set a to b is the set of 6 items: 2, 45, 4, 5, 6, 99")
 	}
 }
@@ -1314,7 +1314,7 @@ func Test_PopSafe(t *testing.T) {
 		t.Error("unepxected a cardinality; should be zero")
 	}
 
-	if !captureSet.Contains("c", "a", "d", "b") {
+	if !captureSet.ContainsAll("c", "a", "d", "b") {
 		t.Error("unexpected result set; should be a,b,c,d (any order is fine")
 	}
 
@@ -1351,7 +1351,7 @@ func Test_PopUnsafe(t *testing.T) {
 		t.Error("unepxected a cardinality; should be zero")
 	}
 
-	if !captureSet.Contains("c", "a", "d", "b") {
+	if !captureSet.ContainsAll("c", "a", "d", "b") {
 		t.Error("unexpected result set; should be a,b,c,d (any order is fine")
 	}
 
@@ -1411,7 +1411,7 @@ func Test_PopNSafe(t *testing.T) {
 		t.Errorf("expected empty slice, got %d items", len(items))
 	}
 
-	if !captureSet.Contains("c", "a", "d", "b") {
+	if !captureSet.ContainsAll("c", "a", "d", "b") {
 		t.Error("unexpected result set; should be a,b,c,d (any order is fine")
 	}
 }
@@ -1467,7 +1467,7 @@ func Test_PopNUnsafe(t *testing.T) {
 		t.Errorf("expected empty slice, got %d items", len(items))
 	}
 
-	if !captureSet.Contains("c", "a", "d", "b") {
+	if !captureSet.ContainsAll("c", "a", "d", "b") {
 		t.Error("unexpected result set; should be a,b,c,d (any order is fine")
 	}
 }
@@ -1521,7 +1521,7 @@ func Test_ToSliceUnthreadsafe(t *testing.T) {
 	}
 
 	for _, i := range setAsSlice {
-		if !s.Contains(i) {
+		if !s.ContainsAll(i) {
 			t.Errorf("Set is missing element: %v", i)
 		}
 	}
@@ -1540,7 +1540,7 @@ func Test_NewSetFromMapKey_Ints(t *testing.T) {
 	}
 
 	for k := range m {
-		if !s.Contains(k) {
+		if !s.ContainsAll(k) {
 			t.Errorf("Element %d not found in map: %v", k, m)
 		}
 	}
@@ -1559,7 +1559,7 @@ func Test_NewSetFromMapKey_Strings(t *testing.T) {
 	}
 
 	for k := range m {
-		if !s.Contains(k) {
+		if !s.ContainsAll(k) {
 			t.Errorf("Element %q not found in map: %v", k, m)
 		}
 	}
@@ -1578,7 +1578,7 @@ func Test_NewThreadUnsafeSetFromMapKey_Ints(t *testing.T) {
 	}
 
 	for k := range m {
-		if !s.Contains(k) {
+		if !s.ContainsAll(k) {
 			t.Errorf("Element %d not found in map: %v", k, m)
 		}
 	}
@@ -1597,7 +1597,7 @@ func Test_NewThreadUnsafeSetFromMapKey_Strings(t *testing.T) {
 	}
 
 	for k := range m {
-		if !s.Contains(k) {
+		if !s.ContainsAll(k) {
 			t.Errorf("Element %q not found in map: %v", k, m)
 		}
 	}
@@ -1660,7 +1660,7 @@ func Test_Example(t *testing.T) {
 	   fmt.Println(allClasses) //Set{English, Chemistry, Automotive, Cooking, Math, Biology, Welding, Music, Go Programming}
 
 	   //Is cooking considered a science class?
-	   fmt.Println(scienceClasses.Contains("Cooking")) //false
+	   fmt.Println(scienceClasses.ContainsAll("Cooking")) //false
 
 	   //Show me all classes that are not science classes, since I hate science.
 	   fmt.Println(allClasses.Difference(scienceClasses)) //Set{English, Automotive, Cooking, Math, Welding, Music, Go Programming}
