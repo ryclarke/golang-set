@@ -37,13 +37,14 @@ func (i *Iterator[T]) Stop() {
 	// Allows for Stop() to be called multiple times
 	// (close() panics when called on already closed channel)
 	defer func() {
-		recover()
+		_ = recover()
 	}()
 
 	close(i.stop)
 
 	// Exhaust any remaining elements.
 	for range i.C {
+		// noop
 	}
 }
 

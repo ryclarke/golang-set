@@ -507,6 +507,7 @@ func Test_IterConcurrent(t *testing.T) {
 	}()
 
 	for range c {
+		// noop
 	}
 }
 
@@ -709,7 +710,7 @@ func Test_DeadlockOnEachCallbackWhenPanic(t *testing.T) {
 		t.Errorf("Expected widgets to have 4 elements, but has %d", card)
 	}
 
-	doWork(widgets)
+	_ = doWork(widgets)
 
 	if !panicOccured {
 		t.Error("Expected a panic to occur followed by recover for test to be valid")
